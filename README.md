@@ -1,12 +1,14 @@
 # Wp::Hmac
 
-This gem wraps EY::ApiHMAC and attempt to make it easier to:
-  - Enable HMAC for specific routes into your Rack application.
+This gem wraps EY::ApiHMAC and attempts to make it easy to:
+  - Enable HMAC for specific routes in your Rack application.
   - Add different secret keys for different customers, servers, routes or users.
 
 It works with Rack applications like Ruby on Rails.
 
-You should also consider using [ey_api_hmac](https://github.com/engineyard/ey_api_hmac) directly.
+You should also consider using
+[ey_api_hmac](https://github.com/engineyard/ey_api_hmac) directly, especially
+if you only have one secret key or want HMAC enabled for every request.
 
 ## Installation
 
@@ -28,10 +30,10 @@ Or install it yourself as:
 
 ### Configuration
 
-You need to configure `WP::HMAC` to
+You need to:
 
-1. Add keys
-1. Add regex's to match routes that will require HMAC
+1. Add at least one key
+1. Add at least one regex to match routes that will require HMAC
 1. Provide a mechanism to ascertain the correct key to use (via `get_auth_id_for_request`)
 
 ``` ruby
@@ -43,11 +45,16 @@ WP::HMAC.configure do
   add_hmac_enabled_route %r{^/esso-api/}
 
   # This will be used by both the Server and Client
-  get_auth_id_for_request -> { current_customer.name }
+  # in this `CurrentCustomer.name` returns either 'esso' or 'texaco'
+  #
+  # This method must be available at the Rack layer and wherever you
+  # use the client.
+  get_auth_id_for_request -> { CurrentCustomer.name }
 end
 ```
 
 You then need to slot the middleware into your rack stack. For Rails:
+
 ``` ruby
 use WP::HMAC::Server
 ```
