@@ -1,6 +1,8 @@
 module WP
   module HMAC
     class Client
+      class UnsuccessfulResponse < StandardError; end
+
       def initialize(url = nil, app = Rack::Client::Handler::NetHTTP)
         build_rack_client(url, app)
       end
@@ -32,6 +34,8 @@ module WP
           define_method(method) do |*args|
             client = Client.new
             client.send(method, *args)
+
+            raise UnsuccessfulResponse unless /2\d\d/.match("#{client.status}")
           end
         end
       end
