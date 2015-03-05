@@ -69,7 +69,7 @@ RSpec.describe WP::HMAC, type: :request do
 
     it 'fails when a request is signed with a duff hash' do
       header 'Authorization', 'AuthHMAC esso:1234'
-      header 'Date', Time.zone.now.httpdate
+      header 'Date', Time.now.httpdate
       get 'http://esso.example.org/dummy/1'
       expect(last_response.body).to include('Authentication failure: signature mismatch')
     end

@@ -11,7 +11,7 @@ module WP
 
         @client = Rack::Client.new(url) do
           use Rack::Config do |env|
-            env['HTTP_DATE'] = Time.zone.now.httpdate
+            env['HTTP_DATE'] = Time.now.httpdate
           end
           use EY::ApiHMAC::ApiAuth::Client, id, auth_key
           run app
