@@ -63,12 +63,12 @@ use WP::HMAC::Server
 
 Use like this ...
 ``` ruby
-   HMAC::Client.get('https://www.example.com/api/staff')
-   HMAC::Client.post('https://www.example.com/api/schedules, {'HEADER' => 'foo'}, StringIO.new('data'))
+   WP::HMAC::Client.get('https://www.example.com/api/staff')
+   WP::HMAC::Client.post('https://www.example.com/api/schedules, {'HEADER' => 'foo'}, StringIO.new('data'))
 ```
  ... or like this:
 ``` ruby
-   client = HMAC::Client.new('https://www.example.com')
+   client = WP::HMAC::Client.new('https://www.example.com')
    client.get('api/staff')
    client.post('api/schedules', {}, StringIO.new('data'))
 ```
