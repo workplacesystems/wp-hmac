@@ -79,4 +79,22 @@ RSpec.describe WP::HMAC, type: :request do
       expect(rack_response.body).to include('Hello, world!')
     end
   end
+
+  context 'with a key configured via a block' do
+    before do
+      WP::HMAC.configure do
+        lookup_auth_key_with { |id| id == 'account2' ?  'mykey' : nil }
+      end
+    end
+
+    it 'looks up the key via the block' do
+      key = WP::HMAC::KeyCabinet.find_by_auth_id('account2')
+      expect(key.auth_key).to eq 'mykey'
+    end
+
+    it 'still finds keys from the add_key method' do
+      key = WP::HMAC::KeyCabinet.find_by_auth_id('esso')
+      expect(key.auth_key).to eq 'secret_key'
+    end
+  end
 end
