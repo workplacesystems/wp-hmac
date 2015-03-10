@@ -1,4 +1,4 @@
-require "wp/hmac/version"
+require 'wp/hmac/version'
 require 'rubygems'
 require 'bundler/setup'
 Bundler.require
@@ -34,8 +34,13 @@ module WP
       @callable.call
     end
 
+    def self.lookup_auth_key_with(&block)
+      KeyCabinet.lookup_block = block
+    end
+
     def self.reset
       KeyCabinet.keys = {}
+      KeyCabinet.lookup_block = nil
       Server.hmac_enabled_routes = []
     end
   end
