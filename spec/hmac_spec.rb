@@ -11,6 +11,10 @@ class DummyController < ActionController::Base
   def show
     render inline: 'Hello, world!'
   end
+
+  def create
+    head :bad_request
+  end
 end
 
 RSpec.describe WP::HMAC, type: :request do
@@ -31,7 +35,7 @@ RSpec.describe WP::HMAC, type: :request do
 
   before do
     Rails.application.routes.draw do
-      resources :dummy, only: %i(show)
+      resources :dummy
     end
   end
 
@@ -77,6 +81,25 @@ RSpec.describe WP::HMAC, type: :request do
     it 'succeeds when the request is correctly signed' do
       rack_response = hmac_client.get 'http://esso.example.org/dummy/1'
       expect(rack_response.body).to include('Hello, world!')
+    end
+
+    it 'succeeds when the request is correctly signed (alt syntax)' do
+      pending 'Need to work out how to test this'
+      rack_response = WP::HMAC::Client.get('http://esso.example.org/dummy/1')
+      expect(rack_response.body).to include('Hello, world!')
+    end
+
+    it 'raises UnsuccessfulResponse when server reponds 400' do
+      expect {
+        hmac_client.post('http://esso.example.org/dummy')
+      }.to raise_error(WP::HMAC::Client::UnsuccessfulResponse)
+    end
+
+    it 'raises UnsuccessfulResponse when server reponds 400 (alt syntax)' do
+      pending 'Need to work out how to test this'
+      expect {
+        WP::HMAC::Client.post('http://esso.example.org/dummy')
+      }.to raise_error(WP::HMAC::Client::UnsuccessfulResponse)
     end
   end
 

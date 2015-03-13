@@ -21,21 +21,28 @@ module WP
         @client
       end
 
-      def method_missing(method_missing, *args, &block)
-        @client.send(method_missing, *args, &block)
-      end
-
       def key_cabinet
         @key_cabinet ||= HMAC::KeyCabinet.find_by_auth_id(HMAC.auth_id)
       end
 
+      # Supports:
+      # client = WP::HMAC::Client.new('https://www.example.com')
+      # client.get('api/staff')
+      %i(delete get head options post put patch).each do |method|
+        define_method(method) do |*args|
+          response = @client.send(method, *args)
+          raise UnsuccessfulResponse unless /2\d\d/.match("#{response.status}")
+          response
+        end
+      end
+
+      # Supports:
+      # WP::HMAC::Client.get('https://www.example.com/api/staff')
       class << self
-        %i(delete get head options post put).each do |method|
+        %i(delete get head options post put patch).each do |method|
           define_method(method) do |*args|
             client = Client.new
             client.send(method, *args)
-
-            raise UnsuccessfulResponse unless /2\d\d/.match("#{client.status}")
           end
         end
       end
