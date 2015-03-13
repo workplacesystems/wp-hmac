@@ -24,6 +24,8 @@ RSpec.describe WP::HMAC, type: :request do
       add_hmac_enabled_route %r{^/dummy/}
       get_auth_id_for_request -> { 'esso' }
     end
+    
+    WP::HMAC::Client.rack_app = app
   end
 
   after(:example) do
@@ -31,7 +33,7 @@ RSpec.describe WP::HMAC, type: :request do
   end
 
   let(:app) { App::Application }
-  let(:hmac_client) { WP::HMAC::Client.new(nil, app) }
+  let(:hmac_client) { WP::HMAC::Client.new(nil) }
 
   before do
     Rails.application.routes.draw do
@@ -84,7 +86,6 @@ RSpec.describe WP::HMAC, type: :request do
     end
 
     it 'succeeds when the request is correctly signed (alt syntax)' do
-      pending 'Need to work out how to test this'
       rack_response = WP::HMAC::Client.get('http://esso.example.org/dummy/1')
       expect(rack_response.body).to include('Hello, world!')
     end
@@ -96,7 +97,6 @@ RSpec.describe WP::HMAC, type: :request do
     end
 
     it 'raises UnsuccessfulResponse when server reponds 400 (alt syntax)' do
-      pending 'Need to work out how to test this'
       expect {
         WP::HMAC::Client.post('http://esso.example.org/dummy')
       }.to raise_error(WP::HMAC::Client::UnsuccessfulResponse)

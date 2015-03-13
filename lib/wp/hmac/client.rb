@@ -3,11 +3,17 @@ module WP
     class Client
       class UnsuccessfulResponse < StandardError; end
 
-      def initialize(url = nil, app = Rack::Client::Handler::NetHTTP)
-        build_rack_client(url, app)
+      @rack_app = Rack::Client::Handler::NetHTTP
+      # Enable injection of another Rack app for testing
+      class << self
+        attr_accessor :rack_app
       end
 
-      def build_rack_client(url, app)
+      def initialize(url = nil)
+        build_rack_client(url)
+      end
+
+      def build_rack_client(url)
         id = key_cabinet.id
         auth_key = key_cabinet.auth_key
 
@@ -16,7 +22,7 @@ module WP
             env['HTTP_DATE'] = Time.now.httpdate
           end
           use EY::ApiHMAC::ApiAuth::Client, id, auth_key
-          run app
+          run Client.rack_app
         end
         @client
       end
