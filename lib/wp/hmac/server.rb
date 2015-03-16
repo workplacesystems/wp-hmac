@@ -1,5 +1,8 @@
 module WP
   module HMAC
+    # = HMAC Server
+    #
+    # Authenticate a request using EY::ApiHMAC
     class Server
       @hmac_enabled_routes = []
 

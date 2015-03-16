@@ -1,4 +1,4 @@
-ENV["RAILS_ENV"] ||= 'test'
+ENV['RAILS_ENV'] ||= 'test'
 require File.expand_path('../../lib/wp/hmac', __FILE__)
 require File.expand_path('../app/config/environment', __FILE__)
 require 'pry'
@@ -18,20 +18,23 @@ class DummyController < ActionController::Base
 end
 
 RSpec.describe WP::HMAC, type: :request do
+  let(:app) { App::Application }
+
   before(:example) do
     WP::HMAC.configure do
-      add_key( { id: 'esso', auth_key: 'secret_key' } )
+      add_key(id: 'esso', auth_key: 'secret_key')
       add_hmac_enabled_route %r{^/dummy/}
       get_auth_id_for_request -> { 'esso' }
     end
+
+    WP::HMAC::Client.rack_app = app
   end
 
   after(:example) do
     WP::HMAC.reset
   end
 
-  let(:app) { App::Application }
-  let(:hmac_client) { WP::HMAC::Client.new(nil, app) }
+  let(:hmac_client) { WP::HMAC::Client.new(nil) }
 
   before do
     Rails.application.routes.draw do
@@ -50,9 +53,9 @@ RSpec.describe WP::HMAC, type: :request do
 
     context 'when hmac is enabled for the route' do
       it 'raises an exception' do
-        expect {
+        expect do
           get 'http://esso.example.com/dummy/1'
-        }.to raise_error(WP::HMAC::KeyCabinet::KeyNotFound)
+        end.to raise_error(WP::HMAC::KeyCabinet::KeyNotFound)
       end
     end
 
@@ -68,14 +71,18 @@ RSpec.describe WP::HMAC, type: :request do
   context 'with a key cabinet' do
     it 'fails when a request is not signed' do
       get 'http://esso.example.org/dummy/1'
-      expect(last_response.body).to eql('Authentication failure: no authorization header')
+
+      expect(last_response.body)
+        .to eql('Authentication failure: no authorization header')
     end
 
     it 'fails when a request is signed with a duff hash' do
       header 'Authorization', 'AuthHMAC esso:1234'
       header 'Date', Time.now.httpdate
       get 'http://esso.example.org/dummy/1'
-      expect(last_response.body).to include('Authentication failure: signature mismatch')
+
+      expect(last_response.body)
+        .to include('Authentication failure: signature mismatch')
     end
 
     it 'succeeds when the request is correctly signed' do
@@ -84,22 +91,20 @@ RSpec.describe WP::HMAC, type: :request do
     end
 
     it 'succeeds when the request is correctly signed (alt syntax)' do
-      pending 'Need to work out how to test this'
       rack_response = WP::HMAC::Client.get('http://esso.example.org/dummy/1')
       expect(rack_response.body).to include('Hello, world!')
     end
 
     it 'raises UnsuccessfulResponse when server reponds 400' do
-      expect {
+      expect do
         hmac_client.post('http://esso.example.org/dummy')
-      }.to raise_error(WP::HMAC::Client::UnsuccessfulResponse)
+      end.to raise_error(WP::HMAC::Client::UnsuccessfulResponse)
     end
 
     it 'raises UnsuccessfulResponse when server reponds 400 (alt syntax)' do
-      pending 'Need to work out how to test this'
-      expect {
+      expect do
         WP::HMAC::Client.post('http://esso.example.org/dummy')
-      }.to raise_error(WP::HMAC::Client::UnsuccessfulResponse)
+      end.to raise_error(WP::HMAC::Client::UnsuccessfulResponse)
     end
   end
 
