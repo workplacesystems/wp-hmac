@@ -1,5 +1,11 @@
 module WP
   module HMAC
+    # = HMAC Client
+    # This client uses EY::ApiHMAC to hash a request with a secret key in order
+    # to authenticate the client.
+    #
+    # See here for the implementation details:
+    # https://github.com/engineyard/ey_api_hmac
     class Client
       class UnsuccessfulResponse < StandardError; end
 
@@ -37,7 +43,7 @@ module WP
       %i(delete get head options post put patch).each do |method|
         define_method(method) do |*args|
           response = @client.send(method, *args)
-          raise UnsuccessfulResponse unless /2\d\d/.match("#{response.status}")
+          fail UnsuccessfulResponse unless /2\d\d/.match("#{response.status}")
           response
         end
       end

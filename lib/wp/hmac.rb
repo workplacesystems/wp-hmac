@@ -18,7 +18,7 @@ module WP
     end
 
     def self.add_key(id:, auth_key:)
-      KeyCabinet.add_key( { id: id, auth_key: auth_key } )
+      KeyCabinet.add_key(id: id, auth_key: auth_key)
     end
 
     def self.add_hmac_enabled_route(route_regex)
@@ -30,7 +30,8 @@ module WP
     end
 
     def self.auth_id
-      raise MissingConfiguration('Set get_auth_id_for_request in the initializer') unless @callable
+      msg = 'Set get_auth_id_for_request in the initializer'
+      fail MissingConfiguration, msg unless @callable
       @callable.call
     end
 

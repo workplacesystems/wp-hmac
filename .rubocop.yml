@@ -1,0 +1,9 @@
+AllCops:
+  RunRailsCops: true
+  Exclude:
+    - spec/app/**/*
+Style/Documentation:
+  Enabled: false
+Style/TrivialAccessors:
+  Exclude:
+    - lib/wp/hmac.rb
