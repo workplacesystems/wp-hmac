@@ -8,12 +8,16 @@ RSpec.configure do |config|
 end
 
 class DummyController < ActionController::Base
-  def show
-    render inline: 'Hello, world!'
-  end
-
   def create
     head :bad_request
+  end
+
+  def update
+    render inline: 'Hello, updated world!'
+  end
+
+  def show
+    render inline: 'Hello, world!'
   end
 end
 
@@ -106,12 +110,28 @@ RSpec.describe WP::HMAC, type: :request do
         WP::HMAC::Client.post('http://esso.example.org/dummy')
       end.to raise_error(WP::HMAC::Client::UnsuccessfulResponse)
     end
+
+    it 'succeeds when the request body resonds to #read' do
+      rack_response = hmac_client.put('http://esso.example.org/dummy/1',
+                                      {},
+                                      StringIO.new('hi'))
+
+      expect(rack_response.body).to include('Hello, updated world!')
+    end
+
+    it 'succeeds when the request body is a string' do
+      rack_response = hmac_client.put('http://esso.example.org/dummy/1',
+                                      {},
+                                      'hi')
+
+      expect(rack_response.body).to include('Hello, updated world!')
+    end
   end
 
   context 'with a key configured via a block' do
     before do
       WP::HMAC.configure do
-        lookup_auth_key_with { |id| id == 'account2' ?  'mykey' : nil }
+        lookup_auth_key_with { |id| id == 'account2' ? 'mykey' : nil }
       end
     end
 
