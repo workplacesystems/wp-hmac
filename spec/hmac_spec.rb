@@ -23,38 +23,27 @@ end
 
 RSpec.describe WP::HMAC, type: :request do
   let(:app) { App::Application }
+  let(:hmac_client) { WP::HMAC::Client.new(nil) }
 
   before(:example) do
     WP::HMAC.configure do
-      add_key(id: 'esso', auth_key: 'secret_key')
       add_hmac_enabled_route %r{^/dummy/}
       get_auth_id_for_request -> { 'esso' }
     end
 
     WP::HMAC::Client.rack_app = app
-  end
 
-  after(:example) do
-    WP::HMAC.reset
-  end
-
-  let(:hmac_client) { WP::HMAC::Client.new(nil) }
-
-  before do
     Rails.application.routes.draw do
       resources :dummy
     end
   end
 
-  after do
+  after(:example) do
+    WP::HMAC.reset
     Rails.application.reload_routes!
   end
 
   context 'with no key' do
-    before(:each) do
-      WP::HMAC::KeyCabinet.instance_eval('@keys = {}')
-    end
-
     context 'when hmac is enabled for the route' do
       it 'raises an exception' do
         expect do
@@ -73,6 +62,13 @@ RSpec.describe WP::HMAC, type: :request do
   end
 
   context 'with a key cabinet' do
+
+    before(:example) do
+      WP::HMAC.configure do
+        add_key(id: 'esso', auth_key: 'secret_key')
+      end
+    end
+
     it 'fails when a request is not signed' do
       get 'http://esso.example.org/dummy/1'
 
@@ -126,23 +122,23 @@ RSpec.describe WP::HMAC, type: :request do
 
       expect(rack_response.body).to include('Hello, updated world!')
     end
-  end
 
-  context 'with a key configured via a block' do
-    before do
-      WP::HMAC.configure do
-        lookup_auth_key_with { |id| id == 'account2' ? 'mykey' : nil }
+    context 'with a key configured via a block' do
+      before do
+        WP::HMAC.configure do
+          lookup_auth_key_with { |id| id == 'account2' ? 'mykey' : nil }
+        end
       end
-    end
 
-    it 'looks up the key via the block' do
-      key = WP::HMAC::KeyCabinet.find_by_auth_id('account2')
-      expect(key.auth_key).to eq 'mykey'
-    end
+      it 'looks up the key via the block' do
+        key = WP::HMAC::KeyCabinet.find_by_auth_id('account2')
+        expect(key.auth_key).to eq 'mykey'
+      end
 
-    it 'still finds keys from the add_key method' do
-      key = WP::HMAC::KeyCabinet.find_by_auth_id('esso')
-      expect(key.auth_key).to eq 'secret_key'
+      it 'still finds keys from the add_key method' do
+        key = WP::HMAC::KeyCabinet.find_by_auth_id('esso')
+        expect(key.auth_key).to eq 'secret_key'
+      end
     end
   end
 end
