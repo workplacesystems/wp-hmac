@@ -7,18 +7,20 @@ module WP
       class KeyNotFound < Exception; end
 
       class << self
-        attr_accessor :keys
-        attr_writer :lookup_block
+        attr_writer :lookup_block, :keys
 
         def add_key(id:, auth_key:)
+          keys[id] = { id: id, auth_key: auth_key }
+        end
+
+        def keys
           @keys ||= {}
-          @keys[id] = { id: id, auth_key: auth_key }
         end
 
         # This method will be called by EY::ApiHMAC. It must return
         # an object that responds to +id+ and +auth_key+
         def find_by_auth_id(id)
-          hash = lookup(id) || @keys[id]
+          hash = lookup(id) || keys[id]
           msg = 'Ensure secret keys are loaded with `HMAC::KeyCabinet.add_key`'
           fail KeyNotFound, msg if hash.nil?
           OpenStruct.new(hash)
