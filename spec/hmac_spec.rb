@@ -98,7 +98,7 @@ RSpec.describe WP::HMAC, type: :request do
     it 'raises UnsuccessfulResponse when server reponds 400' do
       expect do
         hmac_client.post('http://esso.example.org/dummy')
-      end.to raise_error(WP::HMAC::Client::UnsuccessfulResponse)
+      end.to raise_error(WP::HMAC::Client::UnsuccessfulResponse, /400/)
     end
 
     it 'raises UnsuccessfulResponse when server reponds 400 (alt syntax)' do
