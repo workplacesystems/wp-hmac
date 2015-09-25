@@ -43,7 +43,10 @@ module WP
       %i(delete get head options post put patch).each do |method|
         define_method(method) do |*args|
           response = @client.send(method, *args)
-          fail UnsuccessfulResponse unless /2\d\d/.match("#{response.status}")
+          fail(
+            UnsuccessfulResponse,
+            "#{response.status} - #{response.headers} - #{response.body}"
+          ) unless /2\d\d/.match("#{response.status}")
           response
         end
       end
